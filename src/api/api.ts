@@ -93,7 +93,6 @@ export default {
 
   // Add item
   addItem(payload: ItemPayload, headers: Headers): Promise<AxiosResponse<ApiResponse>> {
-    console.log("Entramos a la api")
     return axios.post(`/${payload.option}`, payload.item, { headers });
   },
 }

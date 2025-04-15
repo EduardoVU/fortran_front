@@ -27,12 +27,12 @@ const submitForm = async () => {
   const result = await addItem({ option: 'fortran', item: formulario });
 
   if (!result.success) {
-    console.log("result");
-    console.log(result);
+    console.log("result")
+    console.log(result)
     return;
   }
 
-  console.log("Guardado exitoso:", result);
+  console.log("Guardado exitoso:");
 }
 </script>
 
