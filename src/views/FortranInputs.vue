@@ -2,37 +2,65 @@
 import { reactive, ref, watch } from 'vue'
 import { inputStore } from '@/stores/FortranInputs'
 
-interface Formulario {
-    carpeta: string
-    archivos: string[]
+const store = inputStore();
+const fileInput = ref<HTMLInputElement | null>(null);
+const files = ref<File[]>([]);
+
+
+const setValue = () => {
+    const filesInput = fileInput.value?.files;
+    if (filesInput) {
+        files.value = Array.from(filesInput);
+    }
 }
 
-const store = inputStore();
-const { addItem } = store;
-
-const formulario = reactive<Formulario>({
-    carpeta: '',
-    archivos: ['']
-})
-
-const studiosNumbers = ref<number>(1)
-
-watch(studiosNumbers, (newVal) => {
-    const cantidad = newVal < 1 ? 1 : parseInt(String(newVal))
-    formulario.archivos = Array.from({ length: cantidad }, (_, i) => formulario.archivos[i] || '')
-    studiosNumbers.value = cantidad
-})
-
 const submitForm = async () => {
-  const result = await addItem({ option: 'fortran', item: formulario });
+    console.log("submitForm");
 
-  if (!result.success) {
-    console.log("result")
-    console.log(result)
-    return;
-  }
+    if (files.value.length === 0) {
+        return;
+    }
 
-  console.log("Guardado exitoso:");
+    const formData = new FormData();
+    files.value.forEach(file => {
+        formData.append("files", file);  // ✅ Aquí el nombre "files" debe coincidir con FastAPI
+    });
+
+    try {
+        const response = await store.addItem({ option: 'fortran', item: formData });
+        console.log("response", response);
+
+        if (response.success) {
+            const base64Data = response.file;
+            // Convertir el base64 a un Blob
+            const blob = base64ToBlob(base64Data, "text/plain");
+            downloadBlob(blob, "main.f90"); // Puedes cambiar el nombre del archivo aquí
+        }
+    } catch (error) {
+        console.error("Error al enviar archivos:", error);
+    }
+}
+
+const base64ToBlob = (base64: any, mimeType: any) => {
+    const byteCharacters = atob(base64);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+}
+
+// Función para descargar el Blob
+const downloadBlob = (blob: any, filename: any) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 }
 </script>
 
@@ -41,21 +69,7 @@ const submitForm = async () => {
     <p>This is the Fortran Inputs page.</p>
 
     <form @submit.prevent="submitForm">
-        <fieldset>
-            <label for="numero">Número de pruebas</label>
-            <input id="numero" type="number" v-model.number="studiosNumbers" placeholder="Número de pruebas" />
-        </fieldset>
-
-        <fieldset>
-            <label for="carpeta">Título de la carpeta</label>
-            <input id="carpeta" type="text" v-model="formulario.carpeta" placeholder="Título de carpeta" />
-        </fieldset>
-
-        <fieldset v-for="(archivo, index) in formulario.archivos" :key="index">
-            <label :for="'archivo-' + index">Título del txt con número de prueba {{ index + 1 }} antes del "_"</label>
-            <input :id="'archivo-' + index" type="text" v-model="formulario.archivos[index]"
-                placeholder="Título de archivo principal" />
-        </fieldset>
+        <input type="file" id="file-input" ref="fileInput" accept=".txt" multiple @change="setValue" />
 
         <button type="submit">Generar</button>
     </form>

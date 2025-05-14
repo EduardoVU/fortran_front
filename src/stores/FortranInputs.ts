@@ -4,7 +4,8 @@ import api from '@/api/api'
 export const inputStore = defineStore('inputStore', () => {
 
   const addItem = async (item: any) => {
-    const headers = { 'Content-Type': 'application/json' }
+    const headers = item.item instanceof FormData ? {} : { 'Content-Type': 'application/json' };
+
     try {
       const response = await api.addItem(item, headers);
       return response.data;
