@@ -15,24 +15,21 @@ const setValue = () => {
 }
 
 const submitForm = async () => {
-    console.log("submitForm");
-
     if (files.value.length === 0) {
         return;
     }
 
     const formData = new FormData();
     files.value.forEach(file => {
-        formData.append("files", file);  // ✅ Aquí el nombre "files" debe coincidir con FastAPI
+        formData.append("files", file);
     });
 
     try {
         const response = await store.addItem({ option: 'fortran', item: formData });
-        console.log("response", response);
 
         if (response.success) {
-            const base64Data = response.file;
-            // Convertir el base64 a un Blob
+            const base64Data = response.data;
+
             const blob = base64ToBlob(base64Data, "text/plain");
             downloadBlob(blob, "main.f90"); // Puedes cambiar el nombre del archivo aquí
         }
