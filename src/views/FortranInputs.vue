@@ -1,55 +1,58 @@
 <script setup lang="ts">
-import { reactive, ref, watch } from 'vue'
-import { inputStore } from '@/stores/FortranInputs'
+import { ref } from "vue";
+import { inputStore } from "@/stores/FortranInputs";
 
 const store = inputStore();
 const fileInput = ref<HTMLInputElement | null>(null);
 const files = ref<File[]>([]);
 
-
+// Manejar selección de archivos
 const setValue = () => {
     const filesInput = fileInput.value?.files;
     if (filesInput) {
         files.value = Array.from(filesInput);
     }
-}
+};
 
+// Enviar archivos y procesar respuesta
 const submitForm = async () => {
     if (files.value.length === 0) {
+        alert("Debes seleccionar al menos un archivo.");
         return;
     }
 
     const formData = new FormData();
-    files.value.forEach(file => {
-        formData.append("files", file);
-    });
+    files.value.forEach(file => formData.append("files", file));
 
     try {
-        const response = await store.addItem({ option: 'fortran', item: formData });
+        const response = await store.addItem({ option: "fortran", item: formData });
+        console.log("response")
+        console.log(response)
 
         if (response.success) {
             const base64Data = response.data;
-
-            const blob = base64ToBlob(base64Data, "text/plain");
-            downloadBlob(blob, "main.f90"); // Puedes cambiar el nombre del archivo aquí
+            console.log("Base64 recibido (primeros 100 caracteres):", base64Data.substring(0, 100));
+            downloadBase64File(base64Data, "main.f90");
+        } else {
+            console.error("Error en el backend:", response.message);
+            alert("Error al generar el archivo. Intenta nuevamente.");
         }
     } catch (error) {
         console.error("Error al enviar archivos:", error);
+        alert("Ocurrió un error al enviar los archivos.");
     }
-}
+};
 
-const base64ToBlob = (base64: any, mimeType: any) => {
-    const byteCharacters = atob(base64);
+// Descargar archivo generado en Base64 usando Blob para evitar corrupción
+const downloadBase64File = (base64Data: string, filename: string) => {
+    const byteCharacters = atob(base64Data);
     const byteNumbers = new Array(byteCharacters.length);
     for (let i = 0; i < byteCharacters.length; i++) {
         byteNumbers[i] = byteCharacters.charCodeAt(i);
     }
     const byteArray = new Uint8Array(byteNumbers);
-    return new Blob([byteArray], { type: mimeType });
-}
+    const blob = new Blob([byteArray], { type: "text/plain" });
 
-// Función para descargar el Blob
-const downloadBlob = (blob: any, filename: any) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -58,7 +61,7 @@ const downloadBlob = (blob: any, filename: any) => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-}
+};
 </script>
 
 <template>
@@ -66,8 +69,7 @@ const downloadBlob = (blob: any, filename: any) => {
     <p>This is the Fortran Inputs page.</p>
 
     <form @submit.prevent="submitForm">
-        <input type="file" id="file-input" ref="fileInput" accept=".txt" multiple @change="setValue" />
-
+        <input type="file" ref="fileInput" accept=".txt" multiple @change="setValue" />
         <button type="submit">Generar</button>
     </form>
 </template>
