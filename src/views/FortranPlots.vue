@@ -26,14 +26,13 @@ const submitForm = async () => {
     files.value.forEach(file => formData.append("files", file));
 
     try {
-        const response = await store.addItem({ option: "fortran", item: formData });
-        console.log("response")
-        console.log(response)
-
+        const response = await store.addItem({ option: "plots", item: formData });
+        console.log("response");
+        console.log(response);
         if (response.success) {
             const base64Data = response.data;
             console.log("Base64 recibido (primeros 100 caracteres):", base64Data.substring(0, 100));
-            downloadBase64File(base64Data, "main.f90");
+            downloadBase64File(base64Data, "Graficas.pdf");
         } else {
             console.error("Error en el backend:", response.message);
             alert("Error al generar el archivo. Intenta nuevamente.");
@@ -64,17 +63,17 @@ const downloadBase64File = (base64Data: string, filename: string) => {
     URL.revokeObjectURL(url);
 };
 </script>
-
 <template>
-    <navitagor />
-    <h1>Generar archivo main</h1>
+    <main>
+        <navitagor />
+        <h1>Generar Graficos</h1>
 
-    <form @submit.prevent="submitForm">
-        <input type="file" ref="fileInput" accept=".txt" multiple @change="setValue" />
-        <button type="submit">Generar</button>
-    </form>
+        <form @submit.prevent="submitForm">
+            <input type="file" ref="fileInput" accept=".txt" multiple @change="setValue" />
+            <button type="submit">Generar</button>
+        </form>
+    </main>
 </template>
-
 <style scoped>
 fieldset {
     display: grid;
