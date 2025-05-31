@@ -64,8 +64,8 @@ const downloadBase64File = (base64Data: string, filename: string) => {
 };
 </script>
 <template>
+    <navitagor />
     <main>
-        <navitagor />
         <h1>Generar Graficos</h1>
 
         <form @submit.prevent="submitForm">

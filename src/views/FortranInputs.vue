@@ -67,12 +67,14 @@ const downloadBase64File = (base64Data: string, filename: string) => {
 
 <template>
     <navitagor />
-    <h1>Generar archivo main</h1>
+    <main>
+        <h1>Generar Archivo Main</h1>
 
-    <form @submit.prevent="submitForm">
-        <input type="file" ref="fileInput" accept=".txt" multiple @change="setValue" />
-        <button type="submit">Generar</button>
-    </form>
+        <form @submit.prevent="submitForm">
+            <input type="file" ref="fileInput" accept=".txt" multiple @change="setValue" />
+            <button type="submit">Generar</button>
+        </form>
+    </main>
 </template>
 
 <style scoped>
