@@ -7,8 +7,6 @@ const store = inputStore();
 const fileInput = ref<HTMLInputElement | null>(null);
 const files = ref<File[]>([]);
 
-const isLinux = ref<boolean>(false);
-
 // Manejar selección de archivos
 const setValue = () => {
     const filesInput = fileInput.value?.files;
@@ -28,14 +26,11 @@ const submitForm = async () => {
     files.value.forEach(file => formData.append("files", file));
 
     try {
-        const response = await store.addItem({ option: `fortran?target_os=${isLinux ? 'linux' : 'windows'}`, item: formData });
-        console.log("response")
-        console.log(response)
-
+        const response = await store.addItem({ option: "plots", item: formData });
         if (response.success) {
             const base64Data = response.data;
             console.log("Base64 recibido (primeros 100 caracteres):", base64Data.substring(0, 100));
-            downloadBase64File(base64Data, "main.f90");
+            downloadBase64File(base64Data, "Graficas.pdf");
         } else {
             console.error("Error en el backend:", response.message);
             alert("Error al generar el archivo. Intenta nuevamente.");
@@ -72,49 +67,39 @@ const clearData = () => {
     fileInput.value!.value = "";
     files.value = [];
 }
-</script>
 
+</script>
 <template>
     <navitagor />
     <main>
-        <div class="container">
-            <h1>Generar Archivo Main</h1>
+        <h1>Generar Graficos</h1>
 
-            <form @submit.prevent="submitForm">
-                <input type="file" ref="fileInput" accept=".txt" multiple @change="setValue" />
-                <button type="button" @click="openInput()">Seleccionar Archivos</button>
-                <div v-if="files.length > 0" class="info-data">
-                    <label for="cancel-button">
-                        {{ files.length === 1 ? '1 archivo seleccionado' : `${files.length} archivos
-                        seleccionados` }}
-                    </label>
+        <form @submit.prevent="submitForm">
+            <input type="file" ref="fileInput" accept=".txt" multiple @change="setValue" />
+            <button type="button" @click="openInput()">Seleccionar Archivos</button>
+            <div v-if="files.length > 0" class="info-data">
+                <label for="cancel-button">
+                    {{ files.length === 1 ? '1 archivo seleccionado' : `${files.length} archivos
+                    seleccionados` }}
+                </label>
 
-                    <button type="button" class="cancel-button" id="cancel-button" @click="clearData()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-                            stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M18 6l-12 12" />
-                            <path d="M6 6l12 12" />
-                        </svg>
+                <button type="button" class="cancel-button" id="cancel-button" @click="clearData()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                        stroke="#000000" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 6l-12 12" />
+                        <path d="M6 6l12 12" />
+                    </svg>
 
-                    </button>
-                </div>
-
-                <fieldset class="radio-button">
-                    <button type="button" id="windows" @click="isLinux = false"
-                        :class="{ 'active': !isLinux }"></button>
-                    <label for="windows">Windows</label>
-                    <button type="button" id="linux" @click="isLinux = true" :class="{ 'active': isLinux }"></button>
-                    <label for="linux">Linux</label>
-                </fieldset>
-                <button type="submit">Generar</button>
-            </form>
-        </div>
+                </button>
+            </div>
+            <button type="submit">Generar</button>
+        </form>
     </main>
 </template>
-
 <style scoped>
 main {
-    display: grid;
+    display: flex;
+    flex-direction: column;
     background-color: #F0F2F5;
     flex-grow: 1;
 
@@ -128,10 +113,11 @@ main {
 
 h1 {
     font-family: "Fira Sans", sans-serif;
-    font-size: 2rem;
     font-weight: 700;
     text-align: center;
     color: #1E2A38;
+
+    font-size: 2rem;
     margin-bottom: 25px;
 }
 
@@ -148,67 +134,24 @@ form {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-/* Estilo general de botones */
+
 form button {
     font-family: "Inter", sans-serif;
     font-weight: 600;
     background-color: #ffffff;
     color: #004080;
-    transition: all 0.2s ease-in-out;
     width: 100%;
+    transition: all 0.2s ease-in-out;
 
+    border: 1px solid #004080;
     font-size: 1rem;
     border-radius: 32px;
-    border: 1px solid #004080;
-}
-
-form>button {
     min-height: 44px;
 }
 
-form>button:hover {
+form button:hover {
     background-color: #004080;
     color: #ffffff;
-}
-
-fieldset {
-    display: grid;
-    align-items: center;
-    justify-items: start;
-    grid-template-columns: repeat(2, auto 1fr);
-    border: none;
-    justify-self: center;
-
-    gap: 8px;
-    margin: 12px;
-}
-
-fieldset button {
-    border-radius: 50%;
-    background-color: transparent;
-
-    width: 16px;
-    aspect-ratio: 1;
-    border: 1.5px solid #004080;
-}
-
-fieldset button.active {
-    background-image: radial-gradient(#004080 55%, transparent 60%);
-}
-
-fieldset label {
-    font-family: "Inter", sans-serif;
-    font-size: 1rem;
-    font-weight: 500;
-    color: #1E2A38;
-}
-
-label,
-p {
-    font-family: "Inter", sans-serif;
-    font-size: 1rem;
-    font-weight: 400;
-    color: #333333;
 }
 
 .info-data {
@@ -242,5 +185,14 @@ p {
 
 .info-data .cancel-button:hover svg {
     stroke: #FFF;
+}
+
+label,
+p {
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    color: #333333;
+
+    font-size: 1rem;
 }
 </style>
